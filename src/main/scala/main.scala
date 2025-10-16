@@ -1,0 +1,83 @@
+import scala.util.matching.Regex
+
+abstract class S{
+  def eval(env: Main.Environment): Int
+}
+abstract class Terminal extends S
+case class E(l: Terminal, r: Option[E2]) extends S{
+  def eval(env: Main.Environment): Int = {
+    val leftside = l match {
+      case v:Var => v.eval(env)
+      case c:Const => c.eval(env)
+    }
+    r match {
+      case Some(r) => leftside + r.eval(env)
+      case None => leftside
+    }
+  }
+}
+case class E2(l:E) extends S{
+  def eval(env: Main.Environment): Int = l.eval(env)
+}
+case class Var(n: String) extends Terminal{
+  def eval(env: Main.Environment): Int = env(n)
+}
+case class Const(v: Int) extends Terminal{
+  def eval(env: Main.Environment): Int = v
+}
+
+class RecursiveDescent(input: String) {
+  val constregex: Regex = "^[0-9]+".r
+  val varregex: Regex = "^[A-Za-z]+".r
+
+  var index = 0
+  def parseS(): S = parseE()
+  def parseE(): E = E(parseTerminal(), parseE2())
+  def parseE2(): Option[E2] = {
+    //check for +
+    if (index < input.length && input(index) == '+') {
+      //advance past +
+      index += 1
+      Some(E2(parseE()))
+    }
+    else None //NIL
+  }
+
+  def parseTerminal(): Terminal = {
+    //check if we have a Const or Var
+    //get unparsed String
+    val currString = input.substring(index)
+
+    //check if we have a const
+    var consts = constregex.findAllIn(currString)
+    if (consts.hasNext) {
+      val const = consts.next()
+      index += const.length
+      Const(const.length)
+    }
+    else {
+      val vars = varregex.findAllIn(currString)
+      val varname = vars.next()
+      index += varname.length
+      Var(varname)
+    }
+  }
+}
+
+object Main {
+  type Environment = String => Int
+
+  def main(args: Array[String]): Unit = {
+    val env: Environment = {
+      case "x" => 5
+      case "y" => 7
+    }
+
+    val rd = new RecursiveDescent("x + 23")
+    val exp2rd:S = rd.parseS()
+    println(exp2rd)
+    val result:Int = exp2rd.eval(env)
+    println(result)
+  }
+}
+
