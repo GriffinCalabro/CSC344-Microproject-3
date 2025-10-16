@@ -49,16 +49,16 @@ class RecursiveDescent(input: String) {
     val currString = input.substring(index)
 
     //check if we have a const
-    var consts = constregex.findAllIn(currString)
+    val consts = constregex.findAllIn(currString)
     if (consts.hasNext) {
-      val const = consts.next()
-      index += const.length
-      Const(const.length)
+      val const: String = consts.next()
+      index += const.length()
+      Const(const.toInt)
     }
     else {
       val vars = varregex.findAllIn(currString)
       val varname = vars.next()
-      index += varname.length
+      index += varname.length()
       Var(varname)
     }
   }
@@ -73,11 +73,9 @@ object Main {
       case "y" => 7
     }
 
-    val rd = new RecursiveDescent("x + 23")
-    val exp2rd:S = rd.parseS()
+    val rd = new RecursiveDescent("x+x+7+y")
+    val exp2rd:S = rd.parseE()
     println(exp2rd)
-    val result:Int = exp2rd.eval(env)
-    println(result)
+    println(exp2rd.eval(env))
   }
 }
-
