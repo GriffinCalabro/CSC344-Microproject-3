@@ -1,5 +1,24 @@
 import scala.util.matching.Regex
 
+// Unambiguous grammar
+// S -> E$
+// E -> T + E | T
+// T -> Const | Var
+
+// Easier to parse grammar
+// S -> E$
+// E -> Terminal E2
+// E2 -> + E
+// E2 -> NIL
+// Terminal -> Const
+// Terminal -> Var
+
+// Grammar to be implemented
+// Change to E -> T E2 ???
+// T -> Terminal T2
+// T2 -> * T
+// T2 -> NIL
+
 abstract class S{
   def eval(env: Main.Environment): Int
 }
@@ -17,6 +36,21 @@ case class E(l: Terminal, r: Option[E2]) extends S{
   }
 }
 case class E2(l:E) extends S{
+  def eval(env: Main.Environment): Int = l.eval(env)
+}
+case class T(l: Terminal, r: Option[T2]) extends S{
+  def eval(env: Main.Environment): Int = {
+    val leftside = l match {
+      case v:Var => v.eval(env)
+      case c:Const => c.eval(env)
+    }
+    r match {
+      case Some(r) => leftside + r.eval(env)
+      case None => leftside
+    }
+  }
+}
+case class T2(l:T) extends S{
   def eval(env: Main.Environment): Int = l.eval(env)
 }
 case class Var(n: String) extends Terminal{
@@ -39,6 +73,16 @@ class RecursiveDescent(input: String) {
       //advance past +
       index += 1
       Some(E2(parseE()))
+    }
+    else None //NIL
+  }
+  def parseT(): T = T(parseTerminal(), parseT2())
+  def parseT2(): Option[T2] = {
+    //check for *
+    if (index < input.length && input(index) == '*') {
+      //advance past *
+      index += 1
+      Some(T2(parseT()))
     }
     else None //NIL
   }
@@ -73,7 +117,7 @@ object Main {
       case "y" => 7
     }
 
-    val rd = new RecursiveDescent("x+x+7+y")
+    val rd = new RecursiveDescent("x+x+7+y") //5 + 5 + 7 + 7 = 24
     val exp2rd:S = rd.parseE()
     println(exp2rd)
     println(exp2rd.eval(env))
