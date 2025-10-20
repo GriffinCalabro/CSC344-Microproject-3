@@ -23,17 +23,8 @@ abstract class S{
   def eval(env: Main.Environment): Int
 }
 abstract class Terminal extends S
-case class E(l: Terminal, r: Option[E2]) extends S{
-  def eval(env: Main.Environment): Int = {
-    val leftside = l match {
-      case v:Var => v.eval(env)
-      case c:Const => c.eval(env)
-    }
-    r match {
-      case Some(r) => leftside + r.eval(env)
-      case None => leftside
-    }
-  }
+case class E(l: T, r: Option[E2]) extends S{
+  def eval(env: Main.Environment): Int = l.eval(env)
 }
 case class E2(l:E) extends S{
   def eval(env: Main.Environment): Int = l.eval(env)
@@ -66,7 +57,7 @@ class RecursiveDescent(input: String) {
 
   var index = 0
   def parseS(): S = parseE()
-  def parseE(): E = E(parseTerminal(), parseE2())
+  def parseE(): E = E(parseT(), parseE2())
   def parseE2(): Option[E2] = {
     //check for +
     if (index < input.length && input(index) == '+') {
