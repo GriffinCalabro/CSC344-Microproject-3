@@ -52,8 +52,8 @@ case class Const(v: Int) extends Terminal{
 }
 
 class RecursiveDescent(input: String) {
-  val constregex: Regex = "^[0-9][+*]".r
-  val varregex: Regex = "^[A-Za-z][+*]".r
+  val constregex: Regex = "^[0-9]+".r
+  val varregex: Regex = "^[A-Za-z]+".r
 
   var index = 0
   def parseS(): S = parseE()
